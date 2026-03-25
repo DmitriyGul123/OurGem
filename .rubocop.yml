@@ -38,3 +38,6 @@ Layout/TrailingEmptyLines:
 
 Layout/MultilineMethodCallIndentation:
   Enabled: false
+
+Lint/ScriptPermission:
+  Enabled: false

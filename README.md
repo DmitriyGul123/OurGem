@@ -1,43 +1,160 @@
 # OurWebGem
 
-TODO: Delete this and the text below, and describe your gem
+`OurWebGem` is a Ruby gem that converts Markdown to HTML through an internal AST
+(abstract syntax tree). The project is split into two clear stages:
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/our_web_gem`. To experiment with that code, run `bin/console` for an interactive prompt.
+- `Markdown -> AST`
+- `AST -> HTML`
 
-## Installation
+This makes the code easier to test, extend, and reason about.
 
-TODO: Replace `UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG` with your gem name right after releasing it to RubyGems.org. Please do not do it earlier due to security reasons. Alternatively, replace this section with instructions to install your gem from git if you don't plan to release to RubyGems.org.
+## What The Gem Can Do
 
-Install the gem and add to the application's Gemfile by executing:
+The gem currently supports:
 
-```bash
-bundle add UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+- headings (`# Heading`)
+- paragraphs
+- bold text (`**bold**`)
+- italic text (`*italic*`)
+- links (`[text](https://example.com)`)
+- inline code (`` `puts` ``)
+- fenced code blocks
+- ordered lists
+- unordered lists
+- blockquotes
+
+## Public API
+
+The gem exposes three main methods:
+
+```ruby
+require_relative "lib/our_web_gem"
+
+markdown = "# Hello\n\nUse **bold** and `puts`."
+
+ast = OurWebGem.parse(markdown)
+html = OurWebGem.render(ast)
+full_result = OurWebGem.to_html(markdown)
 ```
 
-If bundler is not being used to manage dependencies, install the gem by executing:
+### `OurWebGem.parse(markdown)`
 
-```bash
-gem install UPDATE_WITH_YOUR_GEM_NAME_IMMEDIATELY_AFTER_RELEASE_TO_RUBYGEMS_ORG
+Parses Markdown and returns the internal AST.
+
+Example:
+
+```ruby
+OurWebGem.parse("# Hello")
+# =>
+# [
+#   {
+#     type: :heading,
+#     level: 1,
+#     children: [{ type: :text, value: "Hello" }]
+#   }
+# ]
 ```
 
-## Usage
+### `OurWebGem.render(ast)`
 
-TODO: Write usage instructions here
+Takes the internal AST and renders HTML.
 
-## Development
+Example:
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+```ruby
+ast = [
+  {
+    type: :paragraph,
+    children: [
+      { type: :text, value: "Use " },
+      { type: :code_inline, value: "puts" }
+    ]
+  }
+]
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and the created tag, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+OurWebGem.render(ast)
+# => "<p>Use <code>puts</code></p>"
+```
 
-## Contributing
+### `OurWebGem.to_html(markdown)`
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/our_web_gem. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [code of conduct](https://github.com/[USERNAME]/our_web_gem/blob/master/CODE_OF_CONDUCT.md).
+Runs the full pipeline from Markdown to HTML.
+
+```ruby
+OurWebGem.to_html("# Hello")
+# => "<h1>Hello</h1>"
+```
+
+## Demo
+
+There is a ready-to-run demo file in the project root:
+
+```bash
+ruby demo.rb
+```
+
+The demo prints:
+
+- the original Markdown
+- the generated AST
+- the final HTML
+
+## Local Development
+
+After cloning the repository, install dependencies:
+
+```bash
+bundle install
+```
+
+Then run the test suite:
+
+```bash
+bundle exec rspec
+```
+
+To run the same default task used in CI:
+
+```bash
+bundle exec rake
+```
+
+The default rake task runs:
+
+- `RSpec` tests
+- `RuboCop`
+
+## CI
+
+The project uses GitHub Actions for CI. The workflow configuration is stored in
+`.github/workflows/main.yml`.
+
+CI runs:
+
+```bash
+bundle exec rake
+```
+
+In practice, this means every CI run checks both:
+
+- test correctness
+- code style
+
+## Project Structure
+
+Main files:
+
+- `lib/our_web_gem/parser.rb` - Markdown to AST parser
+- `lib/our_web_gem/renderer.rb` - AST to HTML renderer
+- `lib/our_web_gem.rb` - public API of the gem
+- `spec/` - automated tests
+- `demo.rb` - small demonstration script
+
+## Notes
+
+The internal AST is the contract between the parser and the renderer. Because of
+that, both parts of the project can be developed and tested independently.
 
 ## License
 
-The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
-
-## Code of Conduct
-
-Everyone interacting in the OurWebGem project's codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/our_web_gem/blob/master/CODE_OF_CONDUCT.md).
+The gem is distributed under the MIT License. See `LICENSE.txt` for details.

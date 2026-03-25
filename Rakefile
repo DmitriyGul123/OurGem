@@ -7,6 +7,17 @@ RSpec::Core::RakeTask.new(:spec)
 
 require "rubocop/rake_task"
 
-RuboCop::RakeTask.new
+RuboCop::RakeTask.new do |task|
+  task.options = ["--force-exclusion"]
+  task.patterns = [
+    "lib/**/*.rb",
+    "spec/**/*.rb",
+    "bin/console",
+    "demo.rb",
+    "test.rb",
+    "our_web_gem.gemspec",
+    "Rakefile"
+  ]
+end
 
 task default: %i[spec rubocop]

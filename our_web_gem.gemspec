@@ -8,9 +8,9 @@ Gem::Specification.new do |spec|
   spec.authors = ["DmitriyGul123"]
   spec.email = ["dimagulyakin177@gmail.com"]
 
-   spec.summary       = "Markdown to HTML renderer"
-   spec.description   = "Converts AST to HTML"
-   spec.homepage      = "https://example.com"
+  spec.summary = "Markdown to HTML renderer"
+  spec.description = "Converts AST to HTML"
+  spec.homepage = "https://example.com"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.2.0"
 
@@ -22,12 +22,23 @@ Gem::Specification.new do |spec|
   # Specify which files should be added to the gem when it is released.
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.
   gemspec = File.basename(__FILE__)
-  spec.files = IO.popen(%w[git ls-files -z], chdir: __dir__, err: IO::NULL) do |ls|
-    ls.readlines("\x0", chomp: true).reject do |f|
-      (f == gemspec) ||
-        f.start_with?(*%w[bin/ Gemfile .gitignore .rspec spec/ .github/ .rubocop.yml])
+  excluded_file = lambda do |path|
+    (path == gemspec) ||
+      path.start_with?(*%w[.git/ bin/ Gemfile .gitignore .rspec spec/ .github/ .rubocop.yml])
+  end
+
+  spec.files = begin
+    IO.popen(%w[git ls-files -z], chdir: __dir__, err: IO::NULL) do |ls|
+      ls.readlines("\x0", chomp: true).reject { |path| excluded_file.call(path) }
+    end
+  rescue Errno::EACCES, Errno::ENOENT
+    Dir.chdir(__dir__) do
+      Dir.glob("**/*", File::FNM_DOTMATCH)
+        .select { |path| File.file?(path) }
+        .reject { |path| excluded_file.call(path) }
     end
   end
+
   spec.bindir = "exe"
   spec.executables = spec.files.grep(%r{\Aexe/}) { |f| File.basename(f) }
   spec.require_paths = ["lib"]
